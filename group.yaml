@@ -9,6 +9,6 @@ spec:
     displayName: Admin
     email: ibapadmin@example.com
     picture: https://example.com/groups/bu-infrastructure.jpeg
-  # parent: ops
-  # children: [backstage, other]
+  parent: admin
+  children: [backstage, other]
   members: [Raja]
