@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: ibap-admin
+  description: The infra admin unit
+spec:
+  type: team
+  profile:
+    displayName: Admin
+    email: ibapadmin@example.com
+    picture: https://example.com/groups/bu-infrastructure.jpeg
+  # parent: ops
+  # children: [backstage, other]
+  members: [Raja]
