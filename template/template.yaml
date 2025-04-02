@@ -1,0 +1,42 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: springboot-template
+  title: Spring Boot App Template
+  description: Template for generating a Spring Boot application with common dependencies
+spec:
+  owner: your-team-name
+  type: service
+  parameters:
+    - title: Spring Boot App Information
+      required:
+        - name
+        - description
+        - groupId
+        - artifactId
+      properties:
+        name:
+          type: string
+          description: The name of the Spring Boot application
+        description:
+          type: string
+          description: A description for the application
+        groupId:
+          type: string
+          description: The group ID (e.g., com.mycompany)
+        artifactId:
+          type: string
+          description: The artifact ID (e.g., my-app)
+  steps:
+    - id: generate-springboot-app
+      name: Generate Spring Boot App using Spring Initializr
+      action: backstage:initializr
+      input:
+        groupId: ${{ parameters.groupId }}
+        artifactId: ${{ parameters.artifactId }}
+        name: ${{ parameters.name }}
+        description: ${{ parameters.description }}
+        dependencies:
+          - web
+          - jpa
+          - h2
