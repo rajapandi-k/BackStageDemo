@@ -2,41 +2,92 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: springboot-template
-  title: Spring Boot App Template
-  description: Template for generating a Spring Boot application with common dependencies
+  title: Spring Boot gRPC Service
+  description: Create a simple microservice using gRPC and Spring Boot Java
+  tags:
+    - recommended
+    - java
+    - grpc
 spec:
-  owner: your-team-name
+  owner: service@example.com
   type: service
+
   parameters:
-    - title: Spring Boot App Information
+    - title: Provide some simple information
       required:
-        - name
-        - description
-        - groupId
-        - artifactId
+        - component_id
+        - owner
+        - java_package_name
       properties:
-        name:
+        component_id:
+          title: Name
           type: string
-          description: The name of the Spring Boot application
+          description: Unique name of the component
+          ui:field: EntityNamePicker
+        java_package_name:
+          title: Java Package Name
+          type: string
+          description: Name for the java package. eg (io.backstage.blah)
         description:
+          title: Description
           type: string
-          description: A description for the application
-        groupId:
+          description: Help others understand what this website is for.
+        owner:
+          title: Owner
           type: string
-          description: The group ID (e.g., com.mycompany)
-        artifactId:
+          description: Owner of the component
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - Group
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
           type: string
-          description: The artifact ID (e.g., my-app)
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
   steps:
-    - id: generate-springboot-app
-      name: Generate Spring Boot App using Spring Initializr
-      action: backstage:initializr
+    - id: template
+      name: Fetch Skeleton + Template
+      action: fetch:template
       input:
-        groupId: ${{ parameters.groupId }}
-        artifactId: ${{ parameters.artifactId }}
-        name: ${{ parameters.name }}
-        description: ${{ parameters.description }}
-        dependencies:
-          - web
-          - jpa
-          - h2
+        url: ./skeleton
+        copyWithoutRender:
+          - .github/workflows/*
+        values:
+          component_id: ${{ parameters.component_id }}
+          description: ${{ parameters.description }}
+          artifact_id: ${{ parameters.component_id }}
+          java_package_name: ${{ parameters.java_package_name }}
+          owner: ${{ parameters.owner }}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
+          http_port: 8080
+
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        allowedHosts: ["github.com"]
+        description: This is ${{ parameters.component_id }}
+        repoUrl: ${{ parameters.repoUrl }}
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
